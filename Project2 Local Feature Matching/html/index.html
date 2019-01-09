@@ -1,0 +1,466 @@
+<html>
+<head>
+<title>Computer Vision Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 960px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+td img {
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1><span style="color: #DE3737">Zongyi Li</span></h1>
+</div>
+</div>
+<div class="container">
+
+<h2>Project 2: Local Feature Matching</h2>
+
+<h3>1. Implementation</h3>
+<p>In project 2, I implemented three .py files to realize three functions of get_interest_points(), get_features(), and match_features(). Firstly I implemented Harris corner detector to extract interest points in original input image, then used Adaptive Non-maximal Suppression to delete the points in high density. Then in get_feature() function, I wrote up program similar to SIFT algorithm to obtain 128-demensional features for each interest point. Finally in feature_match() function, I calculated each pair of interest points in two images, to find the point pairs with minumum distances as match point pairs, and output them.</p>
+
+<br/>
+
+<h4>Interest Points Extraction</h4>
+
+<p>In get_interest_points() function, I implemented Harris corner detection. Firstly I used low_pass gaussian filter to filter the noise of input image. Then I calculated the gradient image, and the second order gradient image. Then I used high_pass gaussian filter to filter the second order gradient image. Next, I calculate the response of each point and sort them in descending order. Finally, in order to delete the dense points in second order image, I implemented Adaptive Non-Maximal Suppression algorithm and get the top 1500 points with minimum radius. The core code is as below.</p>
+
+<pre><code>
+
+	%% Calculate response for each pixel
+    G_low = cv2.getGaussianKernel(9,2)
+    filtered_image = cv2.filter2D(image,-1,G_low)
+    dy, dx = np.gradient(filtered_image)
+
+    Ix2 = dx**2
+    Ixy = dx*dy
+    Iy2 = dy**2
+
+    G_high = cv2.getGaussianKernel(15,2)
+    dx2_w = cv2.filter2D(Ix2, -1, G_high)
+    dxy_w = cv2.filter2D(Ixy, -1, G_high)
+    dy2_w = cv2.filter2D(Iy2, -1, G_high)
+
+    alpha = 0.06
+
+    Response = dx2_w * dy2_w - dxy_w **2 -alpha * (dx2_w + dy2_w) **2
+
+    %%ANMS
+    radius = []
+
+    for i in range(len(sorted_corners)):
+        r_sqaure = float('inf')
+        point1 = sorted_corners[i]
+        for j in range(i):
+            point2 = sorted_corners[j]
+            tmp = (point1[1]-point2[1])**2 +(point1[2]-point2[2])**2
+            r_sqaure = min(tmp, r_sqaure)
+        radius.append([math.sqrt(r_sqaure), point1[0], point1[1], point1[2]])
+
+</code></pre>
+
+<h4>Feature Descriptors</h4>
+
+<p>In get_features() function, I implemented SIFT algoritm to get a 128-dimensional feature for each interest point. Firstly I padded the image so that when we silde the window, the index won't be out of range. Then I calculated the gradient image. For each point in the gradient image, I expend a 16 × 16 window in its neighbor, and calculated the histogram of sum of gradient of 8 orientations. So that we can obtain a 16 × 8 dimensional feature for each interest point. Finally, I normalized the feature values in each points. The core code is as below.<p>
+
+<pre><code>
+
+	%% SIFT feature descriptors
+    for kp in range(0, x.size):
+        histogram = np.zeros((4,4,8))
+        for j in range(feature_width):
+            for i in range(feature_width):
+                dx_tmp = dx[(int)(y[kp])+j][(int)(x[kp])+i]
+                dy_tmp = dy[(int)(y[kp])+j][(int)(x[kp])+i]
+                mag = math.sqrt(dx_tmp**2 + dy_tmp**2)
+                bin = np.arctan2(dy_tmp, dx_tmp)
+                if bin > 1:
+                    bin = 2
+                if bin < -1:
+                    bin = -1
+                if dx_tmp >0:
+                    histogram[(int)(j/4)][(int)(i/4)][math.ceil(bin+1)] += mag
+                else:
+                    histogram[(int)(j/4)][(int)(i/4)][math.ceil(bin+5)] += mag
+        feature = np.reshape(histogram,(1,128))
+        feature = feature/(feature.sum())
+        features.append(feature)
+
+</code></pre>
+
+<h4>Feature Matching</h4>
+<p>In match_features() function, I calculated the distance between each point in feature2 to a point in feature1, and choose the minimum distance as its matching points. Then for each point in feature1, I found a matching point for them, and sorted them according to the ratio of the first minimum distance to the second minimum distance. And I chose the top 100 matching points as my output. The core code is as below.<p>
+
+<pre><code>
+
+	%% Match feature points
+    for i in range(features1.shape[0]):
+        nndr1 = float('inf')
+        nndr2 = float('inf')
+        match_index = -1
+        for j in range(features2.shape[0]):
+            temp = np.linalg.norm(features1[i]-features2[j])
+            if temp < nndr1:
+                nndr2 = nndr1
+                nndr1 = temp
+                match_index = j
+            elif temp < nndr2:
+                nndr2 = temp
+        r = nndr1 / nndr2
+        match_points.append([r, i, match_index])
+
+</code></pre>
+
+<br/><br/>
+
+<h3>2. Experiments and Analysis</h3>
+<p>The results of expeiments on dataset Notre Dame are as below. Firstly I input cheating points to evaluate the accuracy of get_features(). Following are the interest point detection results. </p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="1/cheat/1.png" alt="description" width="80%">
+				<br>
+				Interest points of input image 1
+			</td>
+			<td align="center" valign="center">
+				<img src="1/cheat/2.png" alt="description" width="80%">
+				<br>
+				Interest points of input image 2
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>And the image matching results are as below. In evaluation image, the porints that matched correctly are lined together in green, otherwise in red. Total accuracy is 0.71.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="1/cheat/vis_circles.jpg" alt="description" width="80%">
+				<br>
+				Visualize matching points in circles
+			</td>
+			<td align="center" valign="center">
+				<img src="1/cheat/vis_lines.jpg" alt="description" width="80%">
+				<br>
+				Visualize matching points in lines
+			</td>
+			<td align="center" valign="center">
+				<img src="1/cheat/eval.jpg" alt="description" width="80%">
+				<br>
+				Evaluation of matching points
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+<p>Then I run get_interest_points() function written by myself. In my function, I set the first gaussian filter window as 9, sigma as 2. And the second gaussian window as 15, sigma as 2, and output 1500 interest points as below. We can see that the interest points are mainly the points in edges or corners.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="1/real/1.png" alt="description" width="80%">
+				<br>
+				Interest points of input image 1
+			</td>
+			<td align="center" valign="center">
+				<img src="1/real/2.png" alt="description" width="80%">
+				<br>
+				Interest points of input image 2
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>The matching results are as below. Total accuracy is 0.9. We can find that using Harris Corner detecter, we can improve the accuracy from 0.71 to 0.9. </p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="1/real/vis_circles.jpg" alt="description" width="80%">
+				<br>
+				Visualize matching points in circles
+			</td>
+			<td align="center" valign="center">
+				<img src="1/real/vis_lines.jpg" alt="description" width="80%">
+				<br>
+				Visualize matching points in lines
+			</td>
+			<td align="center" valign="center">
+				<img src="1/real/eval.jpg" alt="description" width="80%">
+				<br>
+				Evaluation of matching points
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>Similarly the results of experiments of Mount Rushmore are as below. This time in my get_interest_points() function, I set the first gaussian filter window as 9, sigma as 0.5. And the second gaussian window as 15, sigma as 2, and output 1500 interest points as below. We can see that the interest points in the right image are centered at the middle bottom of the image, which shows that there are many corners in this area.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="2/real/1.png" alt="description" width="80%">
+				<br>
+				Interest points of input image 1
+			</td>
+			<td align="center" valign="center">
+				<img src="2/real/2.png" alt="description" width="80%">
+				<br>
+				Interest points of input image 2
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>The matching results are as below. Total accuracy is 0.56. The accuracy is quite lower than that of Notre Dame.  </p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="2/real/vis_circles.png" alt="description" width="80%">
+				<br>
+				Visualize matching points in circles
+			</td>
+			<td align="center" valign="center">
+				<img src="2/real/vis_lines.png" alt="description" width="80%">
+				<br>
+				Visualize matching points in lines
+			</td>
+			<td align="center" valign="center">
+				<img src="2/real/eval.png" alt="description" width="80%">
+				<br>
+				Evaluation of matching points
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>The results of experiments of Episcopal Gaudi are as below. I set the first gaussian filter window as 15, sigma as 0.5. And the second gaussian window as 15, sigma as 2, and output 1500 interest points as below. </p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="3/real/1.png" alt="description" width="80%">
+				<br>
+				Interest points of input image 1
+			</td>
+			<td align="center" valign="center">
+				<img src="3/real/2.png" alt="description" width="80%">
+				<br>
+				Interest points of input image 2
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>The matching results are as below. Total accuracy is 0.05, which is very low. Only 5 pairs of points are found and correctly matched. We can see that in image pairs of Episcopal Gaudi, the two images are quite different in scales and orientations.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="3/real/vis_circles.jpg" alt="description" width="80%">
+				<br>
+				Visualize matching points in circles
+			</td>
+			<td align="center" valign="center">
+				<img src="3/real/vis_lines.jpg" alt="description" width="80%">
+				<br>
+				Visualize matching points in lines
+			</td>
+			<td align="center" valign="center">
+				<img src="3/real/eval.jpg" alt="description" width="80%">
+				<br>
+				Evaluation of matching points
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>In other datasets experiments, I didn't have the evaluation file. So I only output the matching points my program got as below. I chose three different image pairs to test my program.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="4/vis_circles.png" alt="description" width="80%">
+				<br>
+				Visualize matching points in circles of image pair 1
+			</td>
+			<td align="center" valign="center">
+				<img src="4/vis_lines.png" alt="description" width="80%">
+				<br>
+				Visualize matching points in lines of image pair 1
+			</td>
+		</tr>
+	</tbody>
+</table>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="5/vis_circles.jpg" alt="description" width="80%">
+				<br>
+				Visualize matching points in circles of image pair 2
+			</td>
+			<td align="center" valign="center">
+				<img src="5/vis_lines.jpg" alt="description" width="80%">
+				<br>
+				Visualize matching points in lines of image pair 2
+			</td>
+		</tr>
+	</tbody>
+</table>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="6/vis_circles.png" alt="description" width="80%">
+				<br>
+				Visualize matching points in circles of image pair 3
+			</td>
+			<td align="center" valign="center">
+				<img src="6/vis_lines.png" alt="description" width="80%">
+				<br>
+				Visualize matching points in lines of image pair 3
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>We can find that in image pairs that are not much different in scales or orientations, or with little shift variance, the accuracy is pretty high. </p>
+
+
+<h3>3. Conclusion</h3>
+
+<p>In this project, I implemented Harris corner detecter and used Adaptive Non-Maximal Suppression to improve it. Also I implemented SIFT algorithm as feature descriptor to obtain 128-dimensional features for each interest point. And I implemented match points function to match interest point pairs in two images, and evaluated its accuracy. My program of Harris corner detecter improve the accuracy in Notre Dame from 0.71 to 0.9. But in another two datasets, the accuracies are pretty low. Thus, I need to improve the scale invariances and rotation invariances in my feature descriptor. Moreover, the window size of gaussian filters in getting interest points is also important and will influent the final accuracy. </p>
+
+
+<br/><br/>
+
+
+</div>
+</body>
+</html>
