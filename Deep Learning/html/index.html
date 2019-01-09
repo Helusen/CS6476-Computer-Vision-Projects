@@ -1,0 +1,319 @@
+<html>
+<head>
+<title>Computer Vision Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 1160px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+table td img {
+  text-align: center;
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1>Zongyi Li<span style="color: #DE3737">(zli732)</span></h1>
+</div>
+</div>
+<div class="container">
+
+<h2> Project 6: Deep Learning </h2>
+
+<p>In this project, I designed and implemented a deep learning network for scene recogintion using PyTorch. The project can be devided into three parts. Part 0 is the first simple deep netwrok which consists of just 4 layers: a convolutional layer, a max-pool layer, a rectified linear layer and another fully connected convolutional layer. The accuracy of simple netwrok is around 35%. In Part 1, I modified the simple network to add more layers, and improved the accuracy to over 50%. In Part 2, I fine-tune a pre-trained deep network to achieve better performance on this task. The pre-train network I'm using is AlexNet network. </p>
+
+
+<div style="clear:both">
+	<h3>Part 0</h3>
+
+	<p>In Part 0, I didn' make any changes and just run the simple network. Deep learning is a method of training multiple layers network to get higher recognition accruacy. Basically there are a lot of layers in deep learning network, like convolutional layer, pooling layer(usually the max-pooling layer), rectified linear layer, etc. The input of each layer is some functions of the output of the last layer. The last layer in deep learning convolutional network is usually a fully-connected layer, which means that every unit in the output of that layer is a function of the entire previous layer. Thus, we only need to set the parameters in different layers, like kernel size, number of channels, etc. to train the network. We don't need to engineer features to get high performing models.</p>
+	<p> The plot results of Part 0 is as below. The Best top-1 Accuracy is 36.482%.</p>
+	<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="1.png" alt="description" width="80%">
+				<br>
+				Train loss and Validation loss
+			</td>
+			<td align="center" valign="center">
+				<img src="2.png" alt="description" width="80%">
+				<br>
+				Log epochs
+			</td>
+		</tr>
+	</tbody>
+</table>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="3.png" alt="description" width="80%">
+				<br>
+				Top1 layer precisions
+			</td>
+			<td align="center" valign="center">
+				<img src="4.png" alt="description" width="80%">
+				<br>
+				Top5 layer precisions
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<h3>Part 1</h3>
+
+<p>In Part 1, I modified the create_datasets() and simple network to implement my own deep learning network and thus improved the top1 layer accuracy and got 58.057%. I used the following steps to improve the performance.</p>
+
+<h4>Jittering</h4>
+<p>Firstly since we don't have enough data for trainig, I need to enlarge the dataset in data preprocessing. We can synthetically increase our amount of training data by left-right mirroring training images during the learning process. In order to mirror the image, I used function transforms.RandomHorizontalFlip(p=0.5), where p=0.5 means half of the images will be mirrored and added to the dataaset. The benefit is that it can enlarge the dataset using the images on their own, and it's easy to implement.</p>
+
+<h4>Zero-centered image</h4>
+<p>Former images are not zero centered. Then I used transforms.Resize() and transforms.CenterCrop() to perform original transformations.</p>
+
+<h4>Normalization</h4>
+<p> In normalization, I computed the mean from the training images and the strandard deviation from the tranining images. Since they can properly represent the whole training images, and all the test/validation images were held out in order to avoid noise. Specifically, I usedtransforms.Normalize(mean=train_mean, std=train_std) to do the normalization for training dataset and test dataset.</p>
+
+<p>The deep learning network training results after data preprocessing are as below. The accuracy was improved to 51.859%.</p>	
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="5.png" alt="description" width="80%">
+				<br>
+				Train loss and Validation loss
+			</td>
+			<td align="center" valign="center">
+				<img src="6.png" alt="description" width="80%">
+				<br>
+				Log epochs
+			</td>
+		</tr>
+	</tbody>
+</table>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="7.png" alt="description" width="80%">
+				<br>
+				Top1 layer precisions
+			</td>
+			<td align="center" valign="center">
+				<img src="8.png" alt="description" width="80%">
+				<br>
+				Top5 layer precisions
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<h4>Adding drop out layer</h4>
+<p> Drop out layer randomly turns off network connections at training time to fight overfitting. This prevents a unit in one layer from relying too strongly on a single unit in the previous layer. At test test, all connections are restored which is analogous to taking an average prediction over all of the "thinned" networks. I added nn.Dropout(p=0.5) in nn.Sequential().</p>
+
+<h4>Adding additional layers</h4>
+<p>In the design of deep learning network in Part 1, I implemented a network of the structure as follows. The first group of Convolutional layer, Rectified Linear layer, BatchNorm, Max pooling layer, followed by another group of Convolutional layer, Rectified Linear layer, BatchNorm, Max pooling layer, and the last, Drop out layer. I set the number of filtters in the first group as 15, and the next group as 25.</p>
+<p>In the first group, the kernel size in convolutional layer is 9, and the kernel size in max pooling layer is 4. In the first group, the kernel size in convolutional layer is 5, and the kernel size in max pooling layer is 3.</p>
+<p>Basically, convolutional layer can filter the orginal data with convolution window. They are initialized with random numbers from a Gaussian distribution. The network learns filters that activate when it detects some specific type of feature at some spatial position in the input. Max pooling layer take a max over a sliding window and then subsample the resulting images. The pooling layer serves to progressively reduce the spatial size of the representation, to reduce the number of parameters, memory footprint and amount of computation in the network, and hence to also control overfitting. The next layer is the non-linearity. Any values in the feature map from the max-pooling layer which are negative will be set to 0. At last, BatchNorm layer can do the normalization.</p>
+<p>I designed the network with two groups connected to improve the recognition accuracy. The kernel size in the second group is smaller since the features are more based on object. Decreasing the sliding window size can improve the performances.</p>
+<p>At last, I designed a convolutional layer as the fully connected layer, with in channerls set as the output of last layer, and out channels as the number of classes.</p>
+<p>For the initialization, I just set all the weight data in BatchNorm2d as 1, and bias in BatchNorm2d as 0.</p>
+<p>After all the modifications, I trained the network, and the accuracy improved to 58.057%. The plot results are as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="9.png" alt="description" width="80%">
+				<br>
+				Train loss and Validation loss
+			</td>
+			<td align="center" valign="center">
+				<img src="10.png" alt="description" width="80%">
+				<br>
+				Log epochs
+			</td>
+		</tr>
+	</tbody>
+</table>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="11.png" alt="description" width="80%">
+				<br>
+				Top1 layer precisions
+			</td>
+			<td align="center" valign="center">
+				<img src="12.png" alt="description" width="80%">
+				<br>
+				Top5 layer precisions
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<h3>Part 2</h3>
+<p>In Part 2, I fine-tuned AlexNet through removing the fc8 layer, and replacing it with a Linear layer. The input of linear layer is 4096, which is the output of last layer, and the output is the number of classes. Then in initialization of the linear layer, I just used the same method in Part 1 through initializing weights with randomly sampled numbers from a normal distribution, and initializing the bias with 0. Then I appended the linear layer to the classifier of AlexNet. After training the model, the accuracy improved to 86.265%. The plot results are as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="13.png" alt="description" width="80%">
+				<br>
+				Train loss and Validation loss
+			</td>
+			<td align="center" valign="center">
+				<img src="14.png" alt="description" width="80%">
+				<br>
+				Log epochs
+			</td>
+		</tr>
+	</tbody>
+</table>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="15.png" alt="description" width="80%">
+				<br>
+				Top1 layer precisions
+			</td>
+			<td align="center" valign="center">
+				<img src="16.png" alt="description" width="80%">
+				<br>
+				Top5 layer precisions
+			</td>
+		</tr>
+	</tbody>
+</table>
+</div>
+<br>
+<br>
+
+
+</body>
+</html>
