@@ -1,0 +1,448 @@
+<html>
+<head>
+<title>Computer Vision Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 960px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+td img {
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1><span style="color: #DE3737">Zongyi Li</span></h1>
+</div>
+</div>
+<div class="container">
+
+<h2>Project 4: Scene Recognition with Bag of Words</h2>
+<p>In this project, we examined some of the most simple methods to recognize scenes. The proejct consists of three parts: Tiny images representation and nearest neighbor classifier, Bag of SIFT representation and nearest neighbor classifier, Bag of SIFT representation and linear SVM classifier. Throughout the three parts we can see that the accuracy improves from around 20% to 50% and finally to 68.73%. Also, we used cross-validation to measure performance. we randomly picked 100 training and 100 testing images fro each iteration, and report the average performance and standard deviations. we tuned learning parameters in linear SVM classifier to find the best hyper-parameters. At last, we experimented with different vocabulary sizes and report the performances. Details of this project are described as followed.</p>
+
+
+<h3>1. Tiny images representation and nearest neighbor classifier</h3>
+<p>In tiny images representation, we resized the images into small and fixed resolution (16×16) pixels. In order to improve the performance to deal with intensity shifts, the code makes the tiny images zero mean and unit length. It can roughly improve 2% in accuracy.</p>
+
+<p>As for the nearest neighbor classifier, We calculated the L2 metric distances of each pair of features, and found the nearest training example and assign the test image to its label. This method requires no training, and it can learn arbitarily complex decision boundaries. But it's vulnerable to training noise, since if there're some noise in the training images, all of the nearest neighbors will be assigned a wrong label. The confusion matrix is as below. The total accuracy is 19.20%. The algorithm runs very fast in less than 30s, but it has the lowest accuracy.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="confusion_mt1.png" alt="description" width="80%">
+				<br>
+				Confusion Matrix for nearest neighbor classifier
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<h3>2. Bag of SIFT representation and nearest neighbor classifier</h3>
+<p>Then we represented the images using Bag of SIFT. Firstly we need to build a vocabulary. We got all the features using SIFT descriptor through function vlfeat.sift.dsift() from every training image and then feed them into k-means function. In this process, we can perform k-means on our set of features and then get the cluster centroids. The vocab size can cause very different results (we will discuss in experimental design). Then after we build the vocabulary, we can represent images as historgrams of visual words. In the function get_bags_of_sifts(), we firstly used vlfeat.sift.dsift() again to get the SIFT features. Then we calculated the distances of each pair of features and found the minimum as the closet cluster centroid and increase their counts. Finaly we normalized the histogram so that if the SIFT features are large, the historgram won't be different. Then we added the histogram into features to represent the images.</p>
+<p>In this part, we also used nearest neighbor classifier. The accuracy improved to 50.60% with vocab size 200. This algorithm runs a bit slower (about 2 minutes) due to the training method(Bag of SIFT). The confusion matrix is as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="confusion_mt2.png" alt="description" width="80%">
+				<br>
+				Confusion Matrix for Bag of SIFT and nearest neighbor classifier
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+<h3>3. Bag of SIFT representation and linear SVM classifier</h3>
+<p>In this part, we used lieaner SVM classifier instead of nearest neighbor classifier to improve the accuracy. In the previous experiments, we found that nearest neighbor classifier are vulnerable to the image noise. In linear SVM, it's on the opposite side of the spectrum with low variance and high bias. It detected linear boundaries bewteen different features. We used 1-vs-all linear SVM classifier. We trained a linear SVM for each catrgory. Then we evaluated the 15 SVMs to find the highest score on test image. The highest score label will be assigned to the test image. </p>
+<p>Firstly we constructed 1 vs all SVMs for each category. Then we built binary label for the training features. In binary label set, 1 means the feature belongs to this label, and -1 means the feature does not belong to this label. Then we used svms.fit(X,y) to fit the linear SVMs. X is the training feature set, and y is the binary label set. Then we can obtain the coef_ as W, which is the weights assigned to features and intercept_ as C, which is the constants in decision function. Then we found the maximum confidence (W*x+C) to assign the label to test images. In function svms.fit(), there're parameters tol, which is the tolerance for stopping criteria and C, which is penalty parameter of error term. They can have different accuracies in the results. We will discuss it in the experiment design part. We used default parameter (random_state=0, tol=1e-3, loss='hinge', C=5) in creating linear SVM. The confusion matrix is as below. The total accuracy improved to 63.80%. </p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="confusion_mt3.png" alt="description" width="80%">
+				<br>
+				Confusion Matrix for Bag of SIFT and linear SVM classifier
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+<h3>4. Experimental Design</h3>
+
+<h4>Cross-validation</h4>
+
+<p>In order to get a more accurate performance measurement, we did a cross-validation rather than the fixed test/train split provided by the starter code. we randomly picked 100 training and 100 test images for each iteration. We iterated 10 times for the tiny image representation and nearest neighbor classifier. The following are the results. The average accuracy is 18.25% and the standard deviation is 0.00601129.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="1.png" alt="description" width="80%">
+				<br>
+				1
+			</td>
+			<td align="center" valign="center">
+				<img src="2.png" alt="description" width="80%">
+				<br>
+				2
+			</td>
+			<td align="center" valign="center">
+				<img src="3.png" alt="description" width="80%">
+				<br>
+				3
+			</td>
+			<td align="center" valign="center">
+				<img src="4.png" alt="description" width="80%">
+				<br>
+				4
+			</td>
+			<td align="center" valign="center">
+				<img src="5.png" alt="description" width="80%">
+				<br>
+				5
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="6.png" alt="description" width="80%">
+				<br>
+				6
+			</td>
+			<td align="center" valign="center">
+				<img src="7.png" alt="description" width="80%">
+				<br>
+				7
+			</td>
+			<td align="center" valign="center">
+				<img src="8.png" alt="description" width="80%">
+				<br>
+				8
+			</td>
+			<td align="center" valign="center">
+				<img src="9.png" alt="description" width="80%">
+				<br>
+				9
+			</td>
+			<td align="center" valign="center">
+				<img src="10.png" alt="description" width="80%">
+				<br>
+				10
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>We did the same operation on Bag of SIFT and nearest neighbor, with vocab size = 200. We also iterated 10 times (The total running time is about 10min). The results of confusion matrix are as below. The average accuracy is 50.61%. The standard deviation is 0.01196636. </p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="11.png" alt="description" width="80%">
+				<br>
+				1
+			</td>
+			<td align="center" valign="center">
+				<img src="12.png" alt="description" width="80%">
+				<br>
+				2
+			</td>
+			<td align="center" valign="center">
+				<img src="13.png" alt="description" width="80%">
+				<br>
+				3
+			</td>
+			<td align="center" valign="center">
+				<img src="14.png" alt="description" width="80%">
+				<br>
+				4
+			</td>
+			<td align="center" valign="center">
+				<img src="15.png" alt="description" width="80%">
+				<br>
+				5
+			</td>
+		</tr>
+	</tbody>
+</table>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="16.png" alt="description" width="80%">
+				<br>
+				6
+			</td>
+			<td align="center" valign="center">
+				<img src="17.png" alt="description" width="80%">
+				<br>
+				7
+			</td>
+			<td align="center" valign="center">
+				<img src="18.png" alt="description" width="80%">
+				<br>
+				8
+			</td>
+			<td align="center" valign="center">
+				<img src="19.png" alt="description" width="80%">
+				<br>
+				9
+			</td>
+			<td align="center" valign="center">
+				<img src="confusion_mt2.png" alt="description" width="80%">
+				<br>
+				10
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+<p>Then for the linear SVM classifier, we also iterated 10 times. The results of confusion matrix are as below. The average accuracy is 63.73%, and the standard deviation is 0.00805994.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="21.png" alt="description" width="80%">
+				<br>
+				1
+			</td>
+			<td align="center" valign="center">
+				<img src="22.png" alt="description" width="80%">
+				<br>
+				2
+			</td>
+			<td align="center" valign="center">
+				<img src="23.png" alt="description" width="80%">
+				<br>
+				3
+			</td>
+			<td align="center" valign="center">
+				<img src="24.png" alt="description" width="80%">
+				<br>
+				4
+			</td>
+			<td align="center" valign="center">
+				<img src="25.png" alt="description" width="80%">
+				<br>
+				5
+			</td>
+		</tr>
+	</tbody>
+</table>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="26.png" alt="description" width="80%">
+				<br>
+				6
+			</td>
+			<td align="center" valign="center">
+				<img src="27.png" alt="description" width="80%">
+				<br>
+				7
+			</td>
+			<td align="center" valign="center">
+				<img src="28.png" alt="description" width="80%">
+				<br>
+				8
+			</td>
+			<td align="center" valign="center">
+				<img src="29.png" alt="description" width="80%">
+				<br>
+				9
+			</td>
+			<td align="center" valign="center">
+				<img src="30.png" alt="description" width="80%">
+				<br>
+				10
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+
+<h4>Tunning learning parameters in linear SVM</h4>
+
+<p>In linear SVM classifier, there are two paramters that can influence the final results. In funstion svms.fit(), tol, which is the tolerance for stopping criteria and C, which is penalty parameter of error term. We firstly fixed C = 5, and changed tol as 10, 1, 0.1, 0.001 and 0.0001. Since if we make tol smaller to 0.00001, it will not converge in SVM classifier (the iteration times are too large). The results of different accuracies in SVM are as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="tol.png" alt="description" width="80%">
+				<br>
+				Accuracies with different tols
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>We can see that along with the decrease of tol, the accuracy increases slightly. However, while the tol decrease at 1, the iteration will converge so that the accuracy will not improve even if tol decrease to 0.0001.</p>
+
+<p>Then we fixed to as 0.0001, and change C as 0.0001, 0.001, 0.01, 1, 5. The results are as below. We can see from the results that different C can lead to quite different results. As the C increase from 0.0001 to 5, the accuracy increase rapidly from around 33% to 63%. But if we increase C to 10, the SVM classifier will not converge. So we found that the best C (largest C) in linear SVM is 5.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="C.png" alt="description" width="80%">
+				<br>
+				Accuracies with different Cs
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<h4>Different vocabulary sizes</h4>
+<p>In this part, we tested different vocabulary size as 10, 20, 50, 100, 200, 400, 1000, 10000. The larger vocab size is, the longer time it took to build vocabulary. When the vocabulary size reaches 1000, it took about 5 minute to build the vocabulary. While it reaches 10000, it took about 20 minutes. The results of accuracies of Bag of SIFT and linear SVM are as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="vocab.png" alt="description" width="80%">
+				<br>
+				Accuracies with different vocab sizes
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>We can see from the results that with the increase of vocab size, the accuracy will gradually increase to 68.73% (with the largest vocab size 10000).</p>
+
+
+
+<br><br>
+
+</div>
+</body>
+</html>
