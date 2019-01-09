@@ -1,0 +1,506 @@
+<html>
+<head>
+<title>Computer Vision Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 960px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+td img {
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1><span style="color: #DE3737">Zongyi Li</span></h1>
+</div>
+</div>
+<div class="container">
+
+<h2>Project 1: Image Filtering and Hybrid Images</h2>
+
+<p> 	This project can be devided into two parts, image filtering and creating hybrid image. We realized image filtering in <i>my_imfilter()</i>. And then we generated hybrid images in <i>reate_hybrid_image()</i> from the aligned image pairs.</p>
+
+
+
+<div style="clear:both">
+<h2>1. Image filtering</h2>
+
+<p> Image filtering is a method to change the pixel intensity or extract some information from images through moving a sliding window (or operator). In this part, we used a gaussian filter to blur image. In <i> my_filter()</i> function, firstly I create a pad for the input image through reflecting the image symmerticly. Then if the input image is a gray image, which has only one channel, I forloop its height and width by sliding the filter window to calculate each pixel's value. Each pixel's value is the sum of the product of each pixel of orignial image and the corresponding pixel of filter operator. If the input image is a RGB image, which has 3 channnels, I filtered each channel with the same method as gray image. Then I created a 3-dimension data as an output image.</p>
+
+<h3>Example of code with highlighting</h3>
+<p>The code of creating pad for input image is as below. I created reflections for images.</p>
+
+<pre><code>
+ %Create pad image
+	pad_size = [int(np.floor(x/2)) for x in filter_size]
+	pad_image = np.lib.pad(image, ((pad_size[0],),(pad_size[1],),(0,)), 'symmetric')
+
+</code></pre>
+
+<p>The code of calculating each pixel's value after filtering is as below. I only present the method of filtering gray image, which has only one channel.</p>
+
+<pre><code>
+%Image filtering
+if(image.shape[2] == 1):
+    for i in range(0, filtered_image.shape[0]):
+      for j in range(0, filtered_image.shape[1]):
+        window = pad_image[i:i+filter_size[0], j:j+filter_size[1]]
+        filtered_image[i][j] = np.sum(np.multiply(window, filter))
+
+    return filtered_image
+</code></pre>
+
+<h3>Results in a table</h3>
+<p>In order to test my function's reliability, I used <i>proj1_test_filtering.ipynb</i> to filter cat.bmp. The results are as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="image_filter/identity_image.jpg" alt="description">
+				<br>
+				Input image
+			</td>
+			<td align="center" valign="center">
+				<img src="image_filter/blur_image.jpg" alt="description">
+				<br>
+				Small blur with box filter
+			</td>
+			<td align="center" valign="center">
+				<img src="image_filter/large_blur_image.jpg" alt="description">
+				<br>
+				Large blur with Gaussian filter
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+<br>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="image_filter/sobel_image.jpg" alt="description">
+				<br>
+				Sobel operator filter
+			</td>
+			<td align="center" valign="center">
+				<img src="image_filter/laplacian_image.jpg" alt="description">
+				<br>
+				Discrete Laplacian filter
+			</td>
+			<td align="center" valign="center">
+				<img src="image_filter/high_pass_image.jpg" alt="description">
+				<br>
+				High-pass alternative for filter
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<br>
+<h2>2. Creating hybrid images</h2>
+<p>Hybrid image is a combination of two images. One is filtered using low_pass filter with blur. The other is the results of original image minus blur image in space domain. What's more, since the provided function of visualizing hybrid image requires each pixel's value between 0 and 1, I used <i>np.clip()</i> function to normalize the value of each pixel. Based on this idea, we can write <i>create_hybrid_image</i> as below.</p>
+
+<pre><code>
+%Creating hybrid image
+low_frequencies = my_imfilter(image1, filter)
+  high_frequencies = image2 - my_imfilter(image2, filter)
+  img = low_frequencies+high_frequencies
+  hybrid_image = np.clip(img, 0,1)
+
+  return low_frequencies, high_frequencies, hybrid_image
+</code></pre>
+
+<h3>Results in a table</h3>
+<p>I created hybrid image for each pair of images provided, with cut-off_frequency=7. The results are as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="hybrid_images/low1.jpg" alt="description" width=90%">
+				<br>
+				Low frequency image for dog.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/high1.jpg" alt="description" width="90%">
+				<br>
+				High frequency image for cat.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/hybrid1.jpg" alt="description" width="90%">
+				<br>
+				Cat and dog hybrid image
+			</td>
+		</tr>
+	</tbody>
+</table>
+</br>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="hybrid_images/low2.jpg" alt="description" width="90%">
+				<br>
+				Low frequency image for fish.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/high2.jpg" alt="description" width="90%">
+				<br>
+				High frequency image for submarine.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/hybrid2.jpg" alt="description" width="90%">
+				<br>
+				Fish and submarine hybrid image
+			</td>
+		</tr>
+	</tbody>
+</table>
+</br>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="hybrid_images/low3.jpg" alt="description" width="90%">
+				<br>
+				Low frequency image for bird.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/high3.jpg" alt="description" width="90%">
+				<br>
+				High frequency image for plane.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/hybrid3.jpg" alt="description" width="90%">
+				<br>
+				Bird and plane hybrid image
+			</td>
+		</tr>
+	</tbody>
+</table>
+</br>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="hybrid_images/low4.jpg" alt="description">
+				<br>
+				Low frequency image for einstein.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/high4.jpg" alt="description">
+				<br>
+				High frequency image for marilyn.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/hybrid4.jpg" alt="description">
+				<br>
+				Einstein and Marilyn hybrid image
+			</td>
+		</tr>
+	</tbody>
+</table>
+</br>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="hybrid_images/low5.jpg" alt="description" width="90%">
+				<br>
+				Low frequency image for motorcycle.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/high5.jpg" alt="description" width="90%">
+				<br>
+				High frequency image for bicycle.bmp
+			</td>
+			<td align="center" valign="center">
+				<img src="hybrid_images/hybrid5.jpg" alt="description" width="90%">
+				<br>
+				Motor and bicycle hybrid image
+			</td>
+		</tr>
+	</tbody>
+</table>
+</br>
+<h2>3. Further Experiments and Observations</h2>
+<h3>a. Different cut-off frequency test</h3>
+<p>For cat and dog image pair, I tried different cut-off frequency and obtained different hybrid image as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="cut-offs/1.jpg" alt="description" width="90%">
+				<br>
+				Cut-off frequency=2
+			</td>
+			<td align="center" valign="center">
+				<img src="cut-offs/2.jpg" alt="description" width="90%">
+				<br>
+				Cut-off frequency=8
+			</td>
+			<td align="center" valign="center">
+				<img src="cut-offs/3.jpg" alt="description" width="90%">
+				<br>
+				Cut-off frequency=14
+			</td>
+		</tr>
+	</tbody>
+</table>
+<p>We can find that the larger cut-off frequency for gaussian filter, the more details it will extract. With low cut-off frequency, less edge information of cat.bmp will be extracted, so the hybrid image is less like a cat. With high cut-off frequency, dog.bmp will be blured more detailedly, and more edge of cat.bmp will be extracted. Thus, the combination will be more like a cat.</p>
+<h3>b. Pad image with zeros VS reflection image</h3>
+<p>In previous code, I pad the original with reflection of image. Then I revised the code to pad images with zeros. The results of testing filtering motorcycle.bmp is as below.</p>
+<p>The results of padding image with zeros are as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="paddings/1/identity_image.jpg" alt="description">
+				<br>
+				Input image
+			</td>
+			<td align="center" valign="center">
+				<img src="paddings/1/blur_image.jpg" alt="description">
+				<br>
+				Small blur with box filter
+			</td>
+			<td align="center" valign="center">
+				<img src="paddings/1/large_blur_image.jpg" alt="description">
+				<br>
+				Large blur with Gaussian filter
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+</br>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="paddings/1/sobel_image.jpg" alt="description">
+				<br>
+				Sobel operator filter
+			</td>
+			<td align="center" valign="center">
+				<img src="paddings/1/laplacian_image.jpg" alt="description">
+				<br>
+				Discrete Laplacian filter
+			</td>
+			<td align="center" valign="center">
+				<img src="paddings/1/high_pass_image.jpg" alt="description">
+				<br>
+				High-pass alternative for filter
+			</td>
+		</tr>
+	</tbody>
+</table>
+<p>The results of padding image with reflection are as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="paddings/2/identity_image.jpg" alt="description">
+				<br>
+				Input image
+			</td>
+			<td align="center" valign="center">
+				<img src="paddings/2/blur_image.jpg" alt="description">
+				<br>
+				Small blur with box filter
+			</td>
+			<td align="center" valign="center">
+				<img src="paddings/2/large_blur_image.jpg" alt="description">
+				<br>
+				Large blur with Gaussian filter
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+</br>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="paddings/2/sobel_image.jpg" alt="description">
+				<br>
+				Sobel operator filter
+			</td>
+			<td align="center" valign="center">
+				<img src="paddings/2/laplacian_image.jpg" alt="description">
+				<br>
+				Discrete Laplacian filter
+			</td>
+			<td align="center" valign="center">
+				<img src="paddings/2/high_pass_image.jpg" alt="description">
+				<br>
+				High-pass alternative for filter
+			</td>
+		</tr>
+	</tbody>
+</table>
+<p>We can see that in Gaussian filter, the padding image with zeros has black edges, whose values are 0. While the padding image with reflection doesn't. In other filter operations, the results are similar. Thus, using reflection image to pad is better than using zeros in Gaussian filter.</p>
+<h3>c. Interchange images to create hybrid image</h3>
+<p>I also did the experiments of interchangeing image pairs to obtain different hybrid images. Using cat.bmp as the low pass image and dog.bmp as the high pass image, the result is as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="interchange/interchange_cat.jpg" alt="description" width="90%">
+				<br>
+				Low pass image
+			</td>
+			<td align="center" valign="center">
+				<img src="interchange/interchange_dog.jpg" alt="description" width="90%">
+				<br>
+				High pass image
+			</td>
+			<td align="center" valign="center">
+				<img src="interchange/interchange_hy.jpg" alt="description" width="90%">
+				<br>
+				Dog and cat hybrid image
+			</td>
+		</tr>
+	</tbody>
+</table>
+<p>We can find that the hybrid image is not much clear, since the contour of dog does not match the background of cat.</p>
+<h2>4. Conclusions</h2>
+<p>Through this project, I learned the basic knowledge of image filtering and implement it in python. Below as some conclusions drawn through this project.</p>
+<p  style="text-align:justify">
+	1. Padding images with reflection will have better filtering results in edges while using big blur operators, like Gaussian filter.
+    <br>
+    2. Low cut-off frequency in Gaussian filter will have worse blur effect, with less running time. High cut-off frequency will extract more detail informations in high-pass image creation, but will cost more running time.
+    <br>
+    3. Hybrid image combines the background information of low-pass image and the edge information of high-pass image.
+</p>
+<br><br><br>
+
+</body>
+</html>
