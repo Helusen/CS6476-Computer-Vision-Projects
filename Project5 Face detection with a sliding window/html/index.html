@@ -1,0 +1,454 @@
+<html>
+<head>
+<title>Face Detection Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 1160px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+table td img {
+  text-align: center;
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1>Zongyi Li<span style="color: #DE3737">(zli732)</span></h1>
+</div>
+</div>
+<div class="container">
+
+<h2> Project 5 / Face Detection with a Sliding Window</h2>
+
+<p>In project 5, I implemented the face detection with a sliding window, using detector of Dalal and Triggs 2005. I used the SIFT-like Histogram of Gradients(HoG) to represent the features of input images, and used SVM classifier to to the classification. The whole project can be divided into three parts: get the features of positive images, get random features from negative images, train the SVM classifier and run the silding window algorithm to detect faces in test images. Moreover, I implemented mining hard negative images which only returns the the features with false-positive prediction. Also, I resized images in multiple scales in sliding window algorithm, as well as in getting the random features in negative images. Finally, I tested different parameters (C in SVM, the step sizes for sliding window, threshold for confidence) and obtained different accuracies.</p>
+
+<div style="clear:both">
+
+<h2>1. Implementation</h2>
+
+<h3>Feature extraction</h3>
+
+<p>In positive images with faces, I just used vlfeat.hog.hog() function to extract the HoG features, the initial cell size is 6. If the cell size is smaller, it will give better performances and describing the image details in positive images. However, it will slow down the algorithm. </p>
+
+<p>while minig the features for negative images, I used single and multiple scales to resize the input image. I divided an image into a series of 36*36 blocks, and each block has an separate HoG feature. Then I downsized the picture and repeated this process on the shruck image in all the scales input. The step size is 15. Then while getting all the features, I randomly chose the features of the number of samples input as the results. The default number of samples is 10000.</p>
+
+
+<h3>SVM classification</h3>
+
+<p>Then I used LinearSVC() function to train the SVM classifier. I set a binary label for positive features and negative features. The label of positive features have the value of 1. And the lable of negative features have the value of -1. The default parameters in linear SVM are : C = 5e-2, and tol = 1e-5.</p>
+
+<p>The results of classification are as below. We can see that the training error is very low. And the positive features and negative features are classified into different classes with the predicted score 0 as the boundary.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="accuracies.png" alt="description" width="90%">
+				<br>
+				Accuracies in SVM classifier
+			</td>
+			<td align="center" valign="center">
+				<img src="class.png" alt="description" width="80%">
+				<br>
+				Classification result
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>The HoG features of positive and negative images are as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="HOG1.png" alt="description" width="90%">
+				<br>
+				HoG feature template of positive images
+			</td>
+			<td align="center" valign="center">
+				<img src="HOG2.png" alt="description" width="90%">
+				<br>
+				HoG feature template of negative images
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<h3>Mine hard negatives</h3>
+<p>In this part, I implemented mine_hard_negs() function which is pretty similar to get_random_negative_feature().  I also used single and multiple scales to resize the input image, and resized the images according to different scales. The only difference is that instead of returning all the features, I set a threshold for confidence in SVM, only the features with confidence that equals or is larger than the threshold are added to the feature list. In the experiment part, I will test different thresholds to obtain different accuracies.</p>
+
+<h3>Sliding window detection</h3>
+
+<p>In this part, firstly I resized the image in different scales. Then for every 36*36 size window in the resized image, I calculated the HoG features and classified with it with SVM classifier from the classification step. Then I set a threshold for the confidence. The window which has the confidence that is larger than or equals the threshold will be added to the feature list. In the HoG calculation step, the detection step size is 10. Then I used non-maximum suppresion for the windows to produce the final results. </p>
+
+
+
+<h2>2. Experiments and results</h2>
+
+<h3>Single scale in sliding window detection</h3>
+
+<p>In this section, I set a single scale 1.0 for sliding window detection. The tunning parameters are all the default as mentioned above. (step size in getting random negative features is 15, C= 5e-2, tols=1e-5) And the threshold in sliding window is 0.9. The step size in sliding window is 5. The accuracy results are as below. The left result is for getting random negative features, and the right is for mining hard negatives.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A1.png" alt="description" width="90%">
+				<br>
+				Single scale accuracy in negative images
+			</td>
+			<td align="center" valign="center">
+				<img src="A2.png" alt="description" width="90%">
+				<br>
+				Single scale accuracy in mining hard negatives
+			</td>
+		</tr>
+	</tbody>
+</table>
+<p>We can see from the results that using a single scale in sliding window detection, the accuracies are around 0.4, even using a step size as 5. And through using mining hard negatives, the accuracy improved a little from 0.392 to 0.401.</p>
+
+<h3>Multiple scales in sliding window detection</h3>
+<p>Then I set multiple scales in sliding window detection. I experimented with two groups of scales. The first is [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3]. And the second is [1.0, 0.9, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25]. The tunning parameters are the same as in single scale in sliding window detection. (step size in getting random negative features is 15, C= 5e-2, tols=1e-5) And the threshold in sliding window is 0.9. The step size in sliding window is 5. </p>
+
+<p>The results for the first group of scales are as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A3.png" alt="description" width="90%">
+				<br>
+				Multiple scales accuracy in negative images
+			</td>
+			<td align="center" valign="center">
+				<img src="A4.png" alt="description" width="90%">
+				<br>
+				Multiple scales accuracy in mining hard negatives
+			</td>
+		</tr>
+	</tbody>
+</table>
+<p>We can see that while using multiple scales, the accuracies improved a lot from around 0.4 to above 0.8 for both getting random negative features and mining hard negatives.</p>
+
+<p>The results for the second group of scales are as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A5.png" alt="description" width="90%">
+				<br>
+				Multiple scales accuracy in negative images
+			</td>
+			<td align="center" valign="center">
+				<img src="A6.png" alt="description" width="90%">
+				<br>
+				Multiple scales accuracy in mining hard negatives
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>We can see that with much more scales, the accuracy improves a little from 0.847 to 0.848, which means that if we resize the image with much more scales, the accuracy will improve more.</p>
+
+
+<h3>Different step sizes in sliding window detection</h3>
+
+<p>In this experiment, I tested different step sizes in sliding window, with the other parameters as below. I used multiple scales of [1.0, 0.9, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25] in sliding window, and step size in getting random negative features is 15, C= 5e-2, tols=1e-5, the threshold is 0.9. I set the step size as 15, 10, and 5. The accuracies results in mining hard negatives are as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A7.png" alt="description" width="90%">
+				<br>
+				Step size as 15
+			</td>
+			<td align="center" valign="center">
+				<img src="A8.png" alt="description" width="90%">
+				<br>
+				Step size as 10
+			</td>
+			<td align="center" valign="center">
+				<img src="A6.png" alt="description" width="90%">
+				<br>
+				Setp size as 5
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>In testing different step sizes, the running time increases along with the decrease of step size. However, the accuracy improves a lot from 0.708 to 0.817 to 0.848. Thus, we can conclude that step size in sliding window is very important. With smaller step size, we can obtain higher accuracy.</p>
+
+<h3>Different thresholds in sliding window detection</h3>
+
+<p>In this experiment, I tested different confidence thresholds in sliding window detection, with the other parameters as below. I used multiple scales of [1.0, 0.9, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25] in sliding window, and step size in getting random negative features is 15, C= 5e-2, tols=1e-5, the step size is 10. I set the threshold as 1, -0.05 and -0.5. The results in mining hard negatives are as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A11.png" alt="description" width="90%">
+				<br>
+				threshold = 1
+			</td>
+			<td align="center" valign="center">
+				<img src="A9.png" alt="description" width="90%">
+				<br>
+				threshold = -0.05
+			</td>
+			<td align="center" valign="center">
+				<img src="A10.png" alt="description" width="90%">
+				<br>
+				threshold = -0.5
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>We can see that with different threshold in sliding window algorithm, the accuracies are different. With the decrease of threshold, the accuracies improved.</p>
+
+<h3>Different C in SVM classifier</h3>
+<p>In this part, I tested different C in Linear SVM to see whether it can influence the results. I used multiple scales of [1.0, 0.9, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25] in sliding window, and step size in getting random negative features is 15, tols = 1e-5, the step size in sliding window is 10. The threshold is -1.0. Then I tested C as 5e-4, 5e-3 and 5e-2. The results in mining hard negatives are as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A13.png" alt="description" width="90%">
+				<br>
+				C = 5e-4
+			</td>
+			<td align="center" valign="center">
+				<img src="A12.png" alt="description" width="90%">
+				<br>
+				C = 5e-3
+			</td>
+			<td align="center" valign="center">
+				<img src="A8.png" alt="description" width="90%">
+				<br>
+				C = 5e-2
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>We can see that as the value of C increase, the accuracy increases. However, the results of C = 5e-3 and C = 5e-2 are similar, which means that while Cis larger than 5e-3, it converges in Linear SVM classifier, so it will not largely improve on the accuracy.</p>
+
+
+<h2>3. Extra credit</h2>
+<p>In obtaining extra credit, I used multiple scales to resize the images in the function get_random_negative_features() and mine_hard_negs(), to test whether multiple scales can improve the results.</p>
+
+<h3>Multiple scales in getting random negative features</h3>
+<p>I used scales [1.0, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25] in these two functions, and multiple scales of [1.0, 0.9, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25] in sliding window, and step size in getting random negative features is 15, tols = 1e-5, C = 5e-2. the step size in sliding window is 5. The threshold is -1.0. The final result in mining hard negatives is as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A14.png" alt="description" width="90%">
+				<br>
+				Multiple scales in gettig features in negative images
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>We can see that the accuracy improves to 0.86, which shows that resizing images in getting random negative features has better performance.</p>
+
+<h2>3. Real face detection results on face datasets</h2>
+
+<p>Finally, the real face detection results using the parameters described in Extra credit implementation in some images are as below.</p>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A15.png" alt="description" width="90%">
+				<br>
+				Face detection1
+			</td>
+			<td align="center" valign="center">
+				<img src="A16.png" alt="description" width="90%">
+				<br>
+				Face detection2
+			</td>
+			<td align="center" valign="center">
+				<img src="A17.png" alt="description" width="90%">
+				<br>
+				Face detetcion3
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A18.png" alt="description" width="90%">
+				<br>
+				Face detection4
+			</td>
+			<td align="center" valign="center">
+				<img src="A19.png" alt="description" width="90%">
+				<br>
+				Face detection5
+			</td>
+			<td align="center" valign="center">
+				<img src="A20.png" alt="description" width="90%">
+				<br>
+				Face detetcion6
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>Some of the results of extra scenes are as below.</p>
+<table border="1" align="center">
+	<tbody>
+		<tr>
+			<td align="center" valign="center">
+				<img src="A21.png" alt="description" width="90%">
+				<br>
+				Face detection7
+			</td>
+			<td align="center" valign="center">
+				<img src="A22.png" alt="description" width="90%">
+				<br>
+				Face detection8
+			</td>
+			<td align="center" valign="center">
+				<img src="A23.png" alt="description" width="90%">
+				<br>
+				Face detetcion9
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<br></br>
+<br></br>
+</body>
+</html>
